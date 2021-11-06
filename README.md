@@ -1,6 +1,8 @@
 # retinal-contrast-glare
 A set of (Python &amp; Matlab) functions for estimating the impact of **glare on the formed retinal image**, derived from some input scene luminances.
 
+![overview](static/overview.png "overview")
+
 The function requires 2 separate inputs:
 1. A **2D input map of the scene** (8-bit input image).
 2. A look-up-table of **telephotometer readings** of the scene. 
