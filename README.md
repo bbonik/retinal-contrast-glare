@@ -1,7 +1,7 @@
 # retinal-contrast-glare
 A set of (Python &amp; Matlab) functions for estimating the impact of **glare on the formed retinal image**, derived from derived from **calibrated measurements of scene radiances**, or luminances. 
 
-The reason for not directly using digital camera outputs, is that, **captured camera images do not represent accurate scene radiances**, because the scene information is transformed by the camera’s optical veiling glare, and nonlinear transformations in camera firmware and image software.
+The reason for *not* directly using digital camera outputs, is that, **captured camera images do not represent accurate scene radiances**, because the scene information is transformed by the camera’s optical veiling glare, and nonlinear transformations in camera firmware and image software.
 
 ![overview](static/overview.png "overview")
 
@@ -11,7 +11,7 @@ The function requires 2 separate inputs:
 
 This is done because telephotometers are the only reliable method of capturing accurate luminances without being affected by the effects of glare. In contrast, camera pixels would have been "contaminated" by glare. Based on these 2 inputs, the function computes the input scene luminances.
 
-Then, a glare spread function is used in order to estimate the retinal image derived by the input scene luminaces. The glare spread function is taken from equation (8) of **Vos&van den Berg (1999) CIE standard** and is used to create a 2D convolution kernel. After that, the kernel is convolved with the input luminance image in order to estimate the cummulated contributions of different points of the scene, on the retinal image. The following is an example of a 600x600 glare spread function kernel.
+Then, a glare spread function is used in order to estimate the retinal image derived by the input scene luminaces. The glare spread function is taken from equation (8) of **Vos&van den Berg (1999) CIE standard** and is used to create a 2D convolution kernel. The kernel size is NxN, where N is the largest dimension of the input image map, in order to ensure that every pixel will "affect" every other one in the image. After that, the kernel is convolved with the input luminance image in order to estimate the cummulated contributions of different points of the scene, on the retinal image. The following is an example of a 600x600 glare spread function kernel.
 
 ![kernel](static/kernel_3D.png "kernel")
 
