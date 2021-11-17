@@ -1,5 +1,5 @@
 # retinal-contrast-glare
-A set of (Python &amp; Matlab) functions for estimating the impact of **glare on the formed retinal image**, derived from derived from **calibrated measurements of scene radiances**, or luminances. 
+A set of (Python &amp; Matlab) functions for estimating the impact of **glare on the formed retinal image**, derived from **calibrated measurements of scene radiances**, or luminances. 
 
 The reason for *not* directly using digital camera outputs, is that, **captured camera images do not represent accurate scene radiances**, because the scene information is transformed by the camera’s optical veiling glare, and nonlinear transformations in camera firmware and image software.
 
