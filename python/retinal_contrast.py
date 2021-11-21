@@ -3,12 +3,11 @@
 This is a Python translation (end enhancement) of the original Matlab script 
 released for the Frontiers paper, in 2018.
 
-This script tests the retinal contrast function on scene luminances.
-First the parameters are set. Then the function computes input scene
-luminances by combining a 2D input map of the scene and a table of
-telephotometer readings of the scene. This is done because telephotometers
-are the only reliable method of estimating accurate luminances without
-being affected by the effects of glare.
+This script defines the retinal contrast function. First the parameters are 
+set. Then the function computes input scene luminances by combining a 2D input 
+map of the scene and a table of telephotometer readings of the scene. This is 
+done because telephotometers are the only reliable method of estimating 
+accurate luminances without being affected by the effects of glare.
 
 @author: Vassilios Vonikakis
 
