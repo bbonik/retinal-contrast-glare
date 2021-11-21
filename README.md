@@ -24,12 +24,13 @@ Finally, different visualizations are generated and saved.
 # Contents:
 ```tree
 ├── python                           [Directory: Python source code]
-│   ├── retinal_contrast.py          [Script to estimate retinal contrast from an input scene map and a telephotometer LUT file] 
-│   └── requirements.txt             [Conda environment file for the required version of libraries]
+│   ├── requirements.txt             [Conda environment file for the required version of libraries]
+│   └── retinal_contrast.py          [Function for estimating retinal contrast from an input scene map and a telephotometer LUT file] 
+│   └── test_retinal_contrast.py     [Example script for calling the function and testing one input scene]
 ├── matlab                           [Directory: Matlab source code]
-│   ├── computeRetinalContrast.m     [Function to estimate retinal contrast from an input scene map and a telephotometer LUT file]
-│   ├── visualizeLogImage.m          [Function to visualize a log-encoded image]
-│   └── testRetinalContrast.m        [Script example for testing one input scene]
+│   ├── computeRetinalContrast.m     [Function for estimating retinal contrast from an input scene map and a telephotometer LUT file]
+│   ├── visualizeLogImage.m          [Function for visualizing a log-encoded image]
+│   └── testRetinalContrast.m        [Example script for calling the function and testing one input scene]
 ├── static                           [Directory: example output images]
 └── data                             [Directory: sample test scenes]
     ├── scene1                       [Directory: example scene 1 map image and corresponding telephotometer LUT file]
@@ -51,6 +52,10 @@ Finally, different visualizations are generated and saved.
 The code is based on Python 3.8. You can generate a new package environment similar to the one that was used to develop this code, buy running the following command line inside the python directory, where the ```requirements.txt``` is located. 
 
 ```conda create --name <your_own_environment_name> --file requirements.txt```
+
+Once you create your new environment from the requirements.txt, you can activate it with the following command. After that, you will be able to run the code.
+
+```conda activate <your_own_environment_name>```
 
 
 # Citation
