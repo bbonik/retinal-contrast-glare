@@ -33,11 +33,11 @@ import time
 
 
 
-def pad_image(image, frame_size, padding_type='replicate'):
+def pad_image(image, frame_size, padding_type='zeros'):
     # Pads values around the input image, by replicating the pixel values of 
     # the outer border (similar to Matlab's 'replicate' option of imfilter).
     
-    # empty image with frame around it
+    # empty image with frame of zeros around it
     image_padded = np.zeros(
         [image.shape[0] + (frame_size * 2), 
          image.shape[1] + (frame_size * 2)],
@@ -50,53 +50,55 @@ def pad_image(image, frame_size, padding_type='replicate'):
         frame_size:frame_size+image.shape[1]
         ] = image
     
-    # replicating upper left corner
-    image_padded[
-        0:frame_size,
-        0:frame_size
-        ] = image[0,0]
     
-    # replicating upper mid
-    image_padded[
-        0:frame_size,
-        frame_size:frame_size+image.shape[1]
-        ] = np.tile(image[0,:], (frame_size,1))
+    if padding_type == 'replicate':
+        # replicating upper left corner
+        image_padded[
+            0:frame_size,
+            0:frame_size
+            ] = image[0,0]
+        
+        # replicating upper mid
+        image_padded[
+            0:frame_size,
+            frame_size:frame_size+image.shape[1]
+            ] = np.tile(image[0,:], (frame_size,1))
+        
+        # replicating upper right corner
+        image_padded[
+            0:frame_size,
+            frame_size+image.shape[1]:
+            ] = image[0,-1]
     
-    # replicating upper right corner
-    image_padded[
-        0:frame_size,
-        frame_size+image.shape[1]:
-        ] = image[0,-1]
-
-    # replicating right mid
-    image_padded[
-        frame_size:frame_size+image.shape[0],
-        frame_size+image.shape[1]:
-        ] = np.tile(image[:,-1].reshape(image.shape[0],1), (1,frame_size))
-    
-    # replicating bottom right corner
-    image_padded[
-        frame_size+image.shape[0]:,
-        frame_size+image.shape[1]:
-        ] = image[-1,-1]
-    
-    # replicating bottom mid
-    image_padded[
-        frame_size+image.shape[0]:,
-        frame_size:frame_size+image.shape[1]
-        ] = np.tile(image[-1,:], (frame_size,1))
-    
-    # replicating bottom left corner
-    image_padded[
-        frame_size+image.shape[0]:,
-        0:frame_size
-        ] = image[-1,0]
-    
-    # replicating left mid
-    image_padded[
-        frame_size:frame_size+image.shape[0],
-        0:frame_size
-        ] = np.tile(image[:,0].reshape(image.shape[0],1), (1,frame_size))
+        # replicating right mid
+        image_padded[
+            frame_size:frame_size+image.shape[0],
+            frame_size+image.shape[1]:
+            ] = np.tile(image[:,-1].reshape(image.shape[0],1), (1,frame_size))
+        
+        # replicating bottom right corner
+        image_padded[
+            frame_size+image.shape[0]:,
+            frame_size+image.shape[1]:
+            ] = image[-1,-1]
+        
+        # replicating bottom mid
+        image_padded[
+            frame_size+image.shape[0]:,
+            frame_size:frame_size+image.shape[1]
+            ] = np.tile(image[-1,:], (frame_size,1))
+        
+        # replicating bottom left corner
+        image_padded[
+            frame_size+image.shape[0]:,
+            0:frame_size
+            ] = image[-1,0]
+        
+        # replicating left mid
+        image_padded[
+            frame_size:frame_size+image.shape[0],
+            0:frame_size
+            ] = np.tile(image[:,0].reshape(image.shape[0],1), (1,frame_size))
     
     return image_padded
 
@@ -234,6 +236,7 @@ def compute_retinal_contrast(
         pixel_size = 0.1664, 
         viewing_distance = 360, 
         log_range = 5.4, 
+        padding_type='zeros',
         verbose = True
         ):
     
@@ -274,6 +277,12 @@ def compute_retinal_contrast(
         Viewing distance of the observer to the target, in mm.
     log_range: float
         Output range in log units.
+    padding_type: string
+        The type of frame that will be used around the input map to address 
+        the boundary conditions. If padding_type='zeros' then a black frame
+        will be affed around the map, simulating a dark surrounding field of 
+        view. If padding_type='replicate', then the surrounding columns and 
+        rows of the map are replicated, similar to Matlab's imfilter function.
     verbose: bool 
         Display results and comments or not.
     
@@ -420,7 +429,7 @@ def compute_retinal_contrast(
     scene_luminance_paded = pad_image(
         image=scene_luminance, 
         frame_size=radius, 
-        padding_type='replicate'
+        padding_type='zeros'
         )
               
     # quick convolution in the frequency domain

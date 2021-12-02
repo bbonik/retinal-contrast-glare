@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # compute_retinal_contrast() function.
     
     compute_retinal_contrast(
-        filename_input_map='../data/scene1/map.tiff',
-        filename_conversion_table='../data/scene1/LUT.txt',
+        filename_input_map='../data/scene5/map.tiff',
+        filename_conversion_table='../data/scene5/LUT.txt',
         path_output = '../outputs/',  # location where outputs will be saved
         age = 25,
         pigmentation_factor = 0.5,
