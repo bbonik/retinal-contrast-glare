@@ -42,5 +42,6 @@ if __name__ == "__main__":
         pixel_size = 0.1664,
         viewing_distance = 360,
         log_range = 5.4,
+        padding_type='replicate',
         verbose = True
     )

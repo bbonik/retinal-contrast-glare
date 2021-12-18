@@ -495,13 +495,13 @@ def compute_retinal_contrast(
     
     cmap_pseudocolors = get_pseudocolor_map()  # create pseudocolor map
     imageio.imwrite(
-        uri=f'{path_output}retinal_contrast_log_mapped_pseudocolors.png', 
+        uri=f'{path_output}retinal_contrast_log_mapped_pseudocolors_range={log_range}.png', 
         im=(cmap_pseudocolors(
             retinal_contrast_log_mapped
             ) * 255).astype(np.uint8)
         )
     imageio.imwrite(
-        uri=f'{path_output}retinal_contrast_log_mapped2_pseudocolors.png', 
+        uri=f'{path_output}retinal_contrast_log_mapped_pseudocolors={round(range_retinal_contrast_log,2)}.png', 
         im=(cmap_pseudocolors(
             retinal_contrast_log_mapped2
             ) * 255).astype(np.uint8)
