@@ -145,10 +145,10 @@ def visualize_log_image(
 
 
 
-def get_pseudocolor_map(number_of_steps=64):
+def get_pseudocolor_map(gradients=64):
     # defining a custom-made pseudocolor visualization map
-    # number_of_steps (int) defines the gradient of colors 
-    # larger number of steps result to smoother visualizations
+    # gradients (int) defines the gradient of colors 
+    # larger number of gradients results to smoother visualizations
     
     rgb_list=[
         [0, 0, 0], 
@@ -221,7 +221,7 @@ def get_pseudocolor_map(number_of_steps=64):
     cmap_pseudocolors = LinearSegmentedColormap.from_list(
         'pseudocolors', 
         rgb_list,
-        N=number_of_steps,
+        N=gradients,
         gamma=1.0
         )
     
@@ -497,19 +497,53 @@ def compute_retinal_contrast(
         im=retinal_contrast_log_mapped
         )
     
-    cmap_pseudocolors = get_pseudocolor_map()  # create pseudocolor map
-    imageio.imwrite(
-        uri=f'{path_output}retinal_contrast_log_mapped_pseudocolors_range={log_range}.png', 
-        im=(cmap_pseudocolors(
-            retinal_contrast_log_mapped
-            ) * 255).astype(np.uint8)
+    # create pseudocolor map
+    cmap_pseudocolors = get_pseudocolor_map(  
+        gradients=64
+        )  
+    
+    plt.ioff()  # in order not to display the next 2 images
+    
+    # saving pseudocolor image 1
+    fig = plt.figure()
+    plt.imshow(
+        retinal_contrast_log_mapped, 
+        cmap=cmap_pseudocolors, 
+        vmin=0, 
+        vmax=255
         )
-    imageio.imwrite(
-        uri=f'{path_output}retinal_contrast_log_mapped_pseudocolors={round(range_retinal_contrast_log,2)}.png', 
-        im=(cmap_pseudocolors(
-            retinal_contrast_log_mapped2
-            ) * 255).astype(np.uint8)
+    plt.title('Retinal Contrast Log (range = ' + str(log_range) + ')')
+    plt.colorbar()
+    plt.tight_layout()
+    manager = plt.get_current_fig_manager()
+    manager.window.showMaximized()
+    fig.savefig(
+        f'{path_output}retinal_contrast_log_mapped_pseudocolors_range={log_range}.png', 
+        bbox_inches='tight'
         )
+    plt.close(fig)
+
+    # saving pseudocolor image 2
+    fig = plt.figure()
+    plt.imshow(
+        retinal_contrast_log_mapped2, 
+        cmap=cmap_pseudocolors, 
+        vmin=0, 
+        vmax=255
+        )
+    plt.title('Retinal Contrast Log (range = ' + 
+                  str(round(range_retinal_contrast_log,3)) + ')')
+    plt.colorbar()
+    plt.tight_layout()
+    manager = plt.get_current_fig_manager()
+    manager.window.showMaximized()
+    fig.savefig(
+        f'{path_output}retinal_contrast_log_mapped_pseudocolors={round(range_retinal_contrast_log,2)}.png', 
+        bbox_inches='tight'
+        )
+    plt.close(fig)
+     
+        
     
     #---------------------------------------------------------- Visualizations
     
@@ -617,6 +651,7 @@ def compute_retinal_contrast(
             )
         plt.title('Retinal Contrast Log (range = ' + 
                   str(round(range_retinal_contrast_log,3)) + ')')
+        
         plt.colorbar()
         
         fig2.set_size_inches(16, 9, forward=True)
