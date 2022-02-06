@@ -145,8 +145,10 @@ def visualize_log_image(
 
 
 
-def get_pseudocolor_map():
+def get_pseudocolor_map(number_of_steps=64):
     # defining a custom-made pseudocolor visualization map
+    # number_of_steps (int) defines the gradient of colors 
+    # larger number of steps result to smoother visualizations
     
     rgb_list=[
         [0, 0, 0], 
@@ -218,7 +220,9 @@ def get_pseudocolor_map():
     
     cmap_pseudocolors = LinearSegmentedColormap.from_list(
         'pseudocolors', 
-        rgb_list
+        rgb_list,
+        N=number_of_steps,
+        gamma=1.0
         )
     
     return cmap_pseudocolors
