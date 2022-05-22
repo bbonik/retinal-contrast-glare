@@ -430,15 +430,15 @@ def compute_retinal_contrast(
         print ('\nFiltering (this may take time for larger maps)...')
     
     # add padding to the image by replicating the values of the outer pixels
-    scene_luminance_paded = pad_image(
+    scene_luminance_padded = pad_image(
         image=scene_luminance, 
         frame_size=radius, 
-        padding_type='zeros'
+        padding_type=padding_type
         )
               
     # quick convolution in the frequency domain
     retinal_contrast = fftconvolve(
-        in1=scene_luminance_paded, 
+        in1=scene_luminance_padded, 
         in2=filter_kernel, 
         mode='valid'  # keep only the main values without the surrounding frame
         )
@@ -486,6 +486,20 @@ def compute_retinal_contrast(
     # if output path does not exist, create it
     if Path(path_output).is_dir() is False:
         Path(path_output).mkdir(parents=True, exist_ok=True)
+    
+    
+    # depict padded input 
+    plt.figure()
+    plt.imshow(scene_luminance_padded, cmap='gray')
+    plt.title('Input scene padded')
+    plt.axis(True)
+    plt.show()
+    
+    # write input padded image
+    imageio.imwrite(
+        uri=f'{path_output}input_scene_padded.png', 
+        im=(scene_luminance_padded*255).astype(np.uint8)
+        )
     
     # write output images
     imageio.imwrite(
