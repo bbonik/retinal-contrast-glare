@@ -11,11 +11,15 @@ accurate luminances without being affected by the effects of glare.
 
 @author: Vassilios Vonikakis
 
-If you use this code in your research, please cite our paper:
+If you use this code in your research, please cite our papers:
+
 McCann, J., Vonikakis, V. (2018). Calculating Retinal Contrast from Scene 
 Content: A Program. Frontiers in Psychology, 8, article 2079
-
 https://www.frontiersin.org/articles/10.3389/fpsyg.2017.02079/full
+
+John J. McCann, Vassilios Vonikakis, Alessandro Rizzi (2022). Edges and 
+Gradients in Lightness Illusions: Role of Optical Veiling Glare. 
+Frontiers in Psychology
 
 """
 
@@ -33,7 +37,7 @@ import time
 
 
 
-def pad_image(image, frame_size, padding_type='zeros'):
+def pad_image(image, frame_size):
     # Pads values around the input image, by replicating the pixel values of 
     # the outer border (similar to Matlab's 'replicate' option of imfilter).
     
@@ -50,55 +54,53 @@ def pad_image(image, frame_size, padding_type='zeros'):
         frame_size:frame_size+image.shape[1]
         ] = image
     
+    # replicating upper left corner
+    image_padded[
+        0:frame_size,
+        0:frame_size
+        ] = image[0,0]
     
-    if padding_type == 'replicate':
-        # replicating upper left corner
-        image_padded[
-            0:frame_size,
-            0:frame_size
-            ] = image[0,0]
-        
-        # replicating upper mid
-        image_padded[
-            0:frame_size,
-            frame_size:frame_size+image.shape[1]
-            ] = np.tile(image[0,:], (frame_size,1))
-        
-        # replicating upper right corner
-        image_padded[
-            0:frame_size,
-            frame_size+image.shape[1]:
-            ] = image[0,-1]
+    # replicating upper mid
+    image_padded[
+        0:frame_size,
+        frame_size:frame_size+image.shape[1]
+        ] = np.tile(image[0,:], (frame_size,1))
     
-        # replicating right mid
-        image_padded[
-            frame_size:frame_size+image.shape[0],
-            frame_size+image.shape[1]:
-            ] = np.tile(image[:,-1].reshape(image.shape[0],1), (1,frame_size))
-        
-        # replicating bottom right corner
-        image_padded[
-            frame_size+image.shape[0]:,
-            frame_size+image.shape[1]:
-            ] = image[-1,-1]
-        
-        # replicating bottom mid
-        image_padded[
-            frame_size+image.shape[0]:,
-            frame_size:frame_size+image.shape[1]
-            ] = np.tile(image[-1,:], (frame_size,1))
-        
-        # replicating bottom left corner
-        image_padded[
-            frame_size+image.shape[0]:,
-            0:frame_size
-            ] = image[-1,0]
-        
-        # replicating left mid
-        image_padded[
-            frame_size:frame_size+image.shape[0],
-            0:frame_size
-            ] = np.tile(image[:,0].reshape(image.shape[0],1), (1,frame_size))
+    # replicating upper right corner
+    image_padded[
+        0:frame_size,
+        frame_size+image.shape[1]:
+        ] = image[0,-1]
+
+    # replicating right mid
+    image_padded[
+        frame_size:frame_size+image.shape[0],
+        frame_size+image.shape[1]:
+        ] = np.tile(image[:,-1].reshape(image.shape[0],1), (1,frame_size))
+    
+    # replicating bottom right corner
+    image_padded[
+        frame_size+image.shape[0]:,
+        frame_size+image.shape[1]:
+        ] = image[-1,-1]
+    
+    # replicating bottom mid
+    image_padded[
+        frame_size+image.shape[0]:,
+        frame_size:frame_size+image.shape[1]
+        ] = np.tile(image[-1,:], (frame_size,1))
+    
+    # replicating bottom left corner
+    image_padded[
+        frame_size+image.shape[0]:,
+        0:frame_size
+        ] = image[-1,0]
+    
+    # replicating left mid
+    image_padded[
+        frame_size:frame_size+image.shape[0],
+        0:frame_size
+        ] = np.tile(image[:,0].reshape(image.shape[0],1), (1,frame_size))
     
     return image_padded
 
@@ -146,9 +148,12 @@ def visualize_log_image(
 
 
 def get_pseudocolor_map(gradients=64):
-    # defining a custom-made pseudocolor visualization map
-    # gradients (int) defines the gradient of colors 
-    # larger number of gradients results to smoother visualizations
+    '''
+    Defining a custom-made pseudocolor visualization map gradients (int) 
+    defines the gradient of colors larger number of gradients results to 
+    smoother visualizations. This map was selected to visualize luminance 
+    gradients with minimal artefacts in the progression from white to black.
+    '''
     
     rgb_list=[
         [0, 0, 0], 
@@ -234,14 +239,13 @@ def get_pseudocolor_map(gradients=64):
 def compute_retinal_contrast(
         filename_input_map, 
         filename_conversion_table, 
+        log_range, 
         path_output=None,
         age = 25, 
         pigmentation_factor = 0.5, 
-        pixel_size = 0.1664, 
-        viewing_distance = 360, 
-        log_range = 5.4, 
-        padding_type='zeros',
-        verbose = True
+        pixel_size = 0.05005, 
+        viewing_distance = 600, 
+        verbose = 1
         ):
     
     '''
@@ -249,11 +253,13 @@ def compute_retinal_contrast(
               Compute the retinal contrast of an input image map
     ----------------------------------------------------------------------
     The function uses a glare spread function in order to estimate the retinal 
-    image derived by some luminace inputs. The glare spread function is taken 
-    from equation (8) of Vos&van den Berg (1999) CIE standard and is used to 
-    create a 2D convolution kernel. After that, the kernel is convolved with 
-    the input luminance image in order to estimate the cummulated 
-    contributions of different points of the scene, on the retinal image.
+    image derived from the scene’s array of digits (in file <imput_map>) and 
+    calibration data. This combination provides calibrated scene luminance 
+    input data. The glare spread function is taken from equation (8) of 
+    Vos&van den Berg (1999) CIE standard and is used to create a 2D convolution 
+    kernel. After that, the kernel is convolved with the input luminance image 
+    in order to estimate the cummulated contributions of different points of 
+    the scene, on the retinal image.
         
     INPUTS
     ------
@@ -266,6 +272,8 @@ def compute_retinal_contrast(
         measurements. Each line of the file corresponds to one pixel value, 
         without any commas. E.g. if the input image map has 256 values, there
         should be 256 different lines (spectrometer measurements) in text file.
+    log_range: float
+        Output range for the calculated glair, in log units.
     path_output: string
         Path to where the output images will be stored.
     age: float 
@@ -279,21 +287,14 @@ def compute_retinal_contrast(
         Size of pixels in mm.
     viewing_distance: float
         Viewing distance of the observer to the target, in mm.
-    log_range: float
-        Output range in log units.
-    padding_type: string
-        The type of frame that will be used around the input map to address 
-        the boundary conditions. If padding_type='zeros' then a black frame
-        will be affed around the map, simulating a dark surrounding field of 
-        view. If padding_type='replicate', then the surrounding columns and 
-        rows of the map are replicated, similar to Matlab's imfilter function.
-    verbose: bool 
-        Display results and comments or not.
+    verbose: int {0,1,2} 
+        Verbosity level. 0: no conslole and no online visualizations (not 
+        recommended), 1: only console, 2: console plus online visualizations
     
     OUTPUT
     ------
-    retinal_contrast: binary numpy array HxW
-        Numpy array of the binary output image.
+    retinal_contrast: double precision numpy array HxW
+        Numpy array of the linear glair output image.
         
     '''  
        
@@ -303,17 +304,20 @@ def compute_retinal_contrast(
     
     input_map = imageio.imread(filename_input_map)  # load image
     if len(input_map.shape) == 3:
-        input_map = img_as_ubyte(rgb2gray(input_map))  # make grayscale if not
+        # make grayscale if not, and color images will loose cd/m2 calibration
+        input_map = img_as_ubyte(rgb2gray(input_map))
         
-    if verbose is True:
+    if verbose > 0:
         print(
             '\nInput map size:', 
             input_map.shape[0], 'H', 
             'x',
             input_map.shape[1], 'W'
             )
-        
+        print(
+            'Requested log range:', log_range)
     
+        
     # load telephotometer LUT txt file
     conversion_table = np.loadtxt(filename_conversion_table)
     
@@ -332,7 +336,7 @@ def compute_retinal_contrast(
         log_range=log_range
         )
     
-    if verbose is True:
+    if verbose > 0:
         print('Scene luminance statistics:')
         print('    max =', scene_luminance.max())
         print('    min =', scene_luminance.min())
@@ -356,10 +360,11 @@ def compute_retinal_contrast(
     
     for i in range(2 * radius + 1):
         
-        if verbose is True:
+        if verbose > 0:
             progress = int((i*100)/(2*radius))
             print(
-                '\r' + 'Calculating filter kernel...' + 
+                '\r' + 'Calculating filter kernel of ' + 
+                str(filter_kernel.shape) + ' ' +
                 str(progress) +'%', end=''
                 ) 
         
@@ -387,54 +392,23 @@ def compute_retinal_contrast(
             filter_kernel[i,j] = filter_kernel[i,j] * np.cos(np.deg2rad(th))
             
     
-    # TODO: check whether it is possible to estimate the kernel as the outer
-    # product of 2 1D vectors (much faster)! work well yet...
-    
-    #    if verbose is True:
-    #        print('Calculating filter kernel')
-    #    
-    #    radius = max(scene_luminance.shape)
-    #    i=radius
-    #    filter_1d=np.zeros([2*radius + 1], dtype=float)
-    #    
-    #    for j in range(2*radius + 1):
-    #        
-    #        distance = pixel_size * np.sqrt(
-    #                          (i - (radius + 1))**2 + (j - (radius + 1))**2)
-    #        #glare angle theta
-    #        th = np.rad2deg(np.arctan(distance / viewing_distance))
-    #        
-    #        filter_1d[j] = ((1 - 0.008 * (age/70)**4) *
-    #                         (9.2e6 / (1 + (th/0.0046)**2)**1.5 + 
-    #                         1.5e5 / (1 + (th/0.045)**2)**1.5) + 
-    #                         (1 + 1.6 * (age/70)**4) * 
-    #                         ((400 / (1 + (th/0.1)**2) + 3e-8*th**2) +
-    #                          pigmentation_factor *
-    #                         (1300 / (1 + (th/0.1)**2)**1.5 + 
-    #                          0.8 / (1 + (th/0.1)**2)**0.5)) + 
-    #                          2.5e-3 * pigmentation_factor)
-    #        # correction for flat target instead of sphere
-    #        filter_1d[j] = filter_1d[j] * np.cos(np.deg2rad(th))
-    #    
-    #    #forming the actual kernel as an outer product of two 1D vectors
-    #    filter_kernel = np.outer(filter_1d, filter_1d)  
-    
-    
     # normalize filter kernel to avoid adding a DC constant during convolution
     filter_kernel = filter_kernel / np.sum(filter_kernel)
 
 
     #-------------------------------------------- Perform the actual filtering
     
-    if verbose is True:
-        print ('\nFiltering (this may take time for larger maps)...')
     
     # add padding to the image by replicating the values of the outer pixels
     scene_luminance_padded = pad_image(
         image=scene_luminance, 
-        frame_size=radius, 
-        padding_type=padding_type
+        frame_size=radius
         )
+    
+    if verbose > 0:
+        print ('\nFiltering padded image', scene_luminance_padded.shape, 
+               ' with kernel', filter_kernel.shape, 
+               '(this may take time for larger maps)...')
               
     # quick convolution in the frequency domain
     retinal_contrast = fftconvolve(
@@ -457,13 +431,8 @@ def compute_retinal_contrast(
     range_retinal_contrast_log = (np.max(retinal_contrast_log) - 
                                   np.min(retinal_contrast_log))
     
-    retinal_contrast_log_mapped2 = visualize_log_image(
-        image_log=retinal_contrast_log, 
-        log_range=range_retinal_contrast_log  # actual log range 
-        )
-    
     # statistics of the retinal contrast image
-    if verbose is True:
+    if verbose > 0:
         print('Retinal contrast statistics:')
         print('    max =', retinal_contrast.max())
         print('    min =', retinal_contrast.min())
@@ -473,11 +442,13 @@ def compute_retinal_contrast(
         print('    log_range(max-min) =', range_retinal_contrast_log)
     
     
+    
     #---------------------------------------------------------- Saving outputs
     
-    if verbose is True:
+    if verbose > 0:
         print('Saving images')
     
+    # preparing the output folder
     if path_output is None: 
         path_output = ''  # if path is not given, use same directory
     elif path_output[-1] != '/':
@@ -488,26 +459,14 @@ def compute_retinal_contrast(
         Path(path_output).mkdir(parents=True, exist_ok=True)
     
     
-    # depict padded input 
-    plt.figure()
-    plt.imshow(scene_luminance_padded, cmap='gray')
-    plt.title('Input scene padded')
-    plt.axis(True)
-    plt.show()
-    
-    # write input padded image
-    imageio.imwrite(
-        uri=f'{path_output}input_scene_padded.png', 
-        im=(scene_luminance_padded*255).astype(np.uint8)
-        )
-    
+
     # write output images
     imageio.imwrite(
-        uri=f'{path_output}scene_luminance_log_mapped.tif', 
+        uri=f'{path_output}scene_luminance_log_mapped[range={log_range}].tiff', 
         im=scene_luminance_log_mapped
         )
     imageio.imwrite(
-        uri=f'{path_output}retinal_contrast_log_mapped.tif', 
+        uri=f'{path_output}retinal_contrast_log_mapped[range={log_range}].tiff', 
         im=retinal_contrast_log_mapped
         )
     
@@ -516,9 +475,8 @@ def compute_retinal_contrast(
         gradients=64
         )  
     
-    plt.ioff()  # in order not to display the next 2 images
-    
-    # saving pseudocolor image 1
+    # saving retinal contrast with pseudocolors
+    plt.ioff()  # in order not to display the image
     fig = plt.figure()
     plt.imshow(
         retinal_contrast_log_mapped, 
@@ -526,33 +484,35 @@ def compute_retinal_contrast(
         vmin=0, 
         vmax=255
         )
-    plt.title('Retinal Contrast Log (range = ' + str(log_range) + ')')
+    plt.title('Retinal Contrast Log Pseudocolors (range = ' + str(log_range) + ')')
     plt.colorbar()
     plt.tight_layout()
     manager = plt.get_current_fig_manager()
     manager.window.showMaximized()
     fig.savefig(
-        f'{path_output}retinal_contrast_log_mapped_pseudocolors_range={log_range}.png', 
+        f'{path_output}retinal_contrast_log_pseudocolors_range={log_range}.png', 
         bbox_inches='tight'
         )
     plt.close(fig)
-
-    # saving pseudocolor image 2
+    
+    
+    
+    # saving scene luminance with pseudocolors
+    plt.ioff()  # in order not to display the image
     fig = plt.figure()
     plt.imshow(
-        retinal_contrast_log_mapped2, 
+        scene_luminance_log_mapped, 
         cmap=cmap_pseudocolors, 
         vmin=0, 
         vmax=255
         )
-    plt.title('Retinal Contrast Log (range = ' + 
-                  str(round(range_retinal_contrast_log,3)) + ')')
+    plt.title('Scene Luminance Log Pseudocolors (range = ' + str(log_range) + ')')
     plt.colorbar()
     plt.tight_layout()
     manager = plt.get_current_fig_manager()
     manager.window.showMaximized()
     fig.savefig(
-        f'{path_output}retinal_contrast_log_mapped_pseudocolors={round(range_retinal_contrast_log,2)}.png', 
+        f'{path_output}scene_luminance_log_pseudocolors_range={log_range}.png', 
         bbox_inches='tight'
         )
     plt.close(fig)
@@ -561,34 +521,40 @@ def compute_retinal_contrast(
     
     #---------------------------------------------------------- Visualizations
     
-    
-    # for filter kernel
-    if verbose is True:
-        fig0, ax = plt.subplots(nrows=1, ncols=2)
-        
-        plt.subplot(1, 2, 1)
-        plt.imshow(filter_kernel)
-        plt.title('Filter Kernel linear')
-        plt.colorbar()
-        
-        plt.subplot(1, 2, 2)
-        plt.imshow(np.log10(filter_kernel))
-        plt.title('Filter Kernel logarithmic')
-        plt.colorbar()
-        
-        fig0.set_size_inches(16, 9, forward=True)
-        plt.suptitle('Glair filter kernel')
+
+    if verbose > 1:
+           
+        # 3D filter kernel
+        x = range(filter_kernel.shape[1])
+        y = range(filter_kernel.shape[0])
+        [X,Y] = np.meshgrid(x,y)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        surf = ax.plot_surface(
+            X,
+            Y,
+            np.log10(filter_kernel), 
+            cmap='jet', 
+            linewidth=0, 
+            rstride=10,  # subsampling ratio
+            cstride=10  # subsampling ratio
+        )
+        plt.xlabel('X dimension')
+        plt.ylabel('Y dimension')
+        ax.set_zlabel('Log units')
+        plt.title('Glair filter kernel logarithmic \n' + 
+                  str(filter_kernel.shape[0]) + 
+                  ' x ' + 
+                  str(filter_kernel.shape[1])
+        )
+        plt.tight_layout()
+        fig.colorbar(surf, shrink=0.5, aspect=5)
         plt.show()
         manager = plt.get_current_fig_manager()
         manager.window.showMaximized()
-        fig0.savefig(
-            f'{path_output}Fig-glare-kernel.png', 
-            bbox_inches='tight'
-            )
+        
     
-    
-    # for scene luminance
-    if verbose is True:    
+        # for scene luminance 
         fig1, ax = plt.subplots(nrows=2, ncols=2)
         
         plt.subplot(2, 2, 1)
@@ -607,8 +573,8 @@ def compute_retinal_contrast(
         plt.colorbar()
         
         plt.subplot(2, 2, 4)
-        plt.imshow(scene_luminance_log_mapped, cmap=cmap_pseudocolors)
-        plt.title('Input Scene Luminance Log (range = ' + str(log_range) + ')')
+        plt.imshow(scene_luminance_padded, cmap='gray')
+        plt.title('Input Scene Luminance Padded \n(normalized telephotometer values)')
         plt.colorbar()
         
         fig1.set_size_inches(16, 9, forward=True)
@@ -616,17 +582,17 @@ def compute_retinal_contrast(
         plt.show()
         manager = plt.get_current_fig_manager()
         manager.window.showMaximized()
-        fig1.savefig(
-            f'{path_output}Fig-scene-luminance.png', 
-            bbox_inches='tight'
-            )
+        # uncomment to save the figure
+        # fig1.savefig(
+        #     f'{path_output}Fig-scene-luminance.png', 
+        #     bbox_inches='tight'
+        #     )
     
     
-    # for retinal contrast
-    if verbose is True:    
-        fig2, ax = plt.subplots(nrows=2, ncols=2)
+        # for retinal contrast  
+        fig2, ax = plt.subplots(nrows=1, ncols=3)
         
-        plt.subplot(2, 2, 1)
+        plt.subplot(1, 3, 1)
         plt.imshow(
             retinal_contrast, 
             cmap='gray', 
@@ -636,36 +602,28 @@ def compute_retinal_contrast(
         plt.title('Retinal Contrast Linear Output')
         plt.colorbar()
         
-        plt.subplot(2, 2, 2)
+        plt.subplot(1, 3, 3)
         plt.imshow(
             retinal_contrast_log_mapped, 
             cmap=cmap_pseudocolors, 
             vmin=0, 
             vmax=255
             )
-        plt.title('Retinal Contrast Log (range = ' + str(log_range) + ')')
+        plt.title(
+            'Retinal Contrast Pseudocolors \n(range = ' + str(log_range) + ')'
+            )
         plt.colorbar()
         
-        plt.subplot(2, 2, 3)
+        plt.subplot(1, 3, 2)
         plt.imshow(
             retinal_contrast_log, 
             cmap='gray', 
             vmin=retinal_contrast_log.min(), 
             vmax=0
             )
-        plt.title('Retinal Contrast Log Output')
-        plt.colorbar()
-        
-        plt.subplot(2, 2, 4)
-        plt.imshow(
-            retinal_contrast_log_mapped2, 
-            cmap=cmap_pseudocolors, 
-            vmin=0, 
-            vmax=255
+        plt.title(
+            'Retinal Contrast Log Output \n(range = ' + str(log_range) + ')'
             )
-        plt.title('Retinal Contrast Log (range = ' + 
-                  str(round(range_retinal_contrast_log,3)) + ')')
-        
         plt.colorbar()
         
         fig2.set_size_inches(16, 9, forward=True)
@@ -673,12 +631,13 @@ def compute_retinal_contrast(
         plt.show()
         manager = plt.get_current_fig_manager()
         manager.window.showMaximized()
-        fig2.savefig(
-            f'{path_output}Fig-retinal-contrast.png', 
-            bbox_inches='tight'
-            )
+        # uncomment to save the figure
+        # fig2.savefig(
+        #     f'{path_output}Fig-retinal-contrast.png', 
+        #     bbox_inches='tight'
+        #     )
     
-    if verbose is True:
+
         print('Finished in:', time.time()-time_start, 'sec')
     
     return retinal_contrast
@@ -705,5 +664,6 @@ if __name__ == "__main__":
         pixel_size = 0.1664,
         viewing_distance = 360,
         log_range = 5.4,
-        verbose = True
+        verbose = 2
     )
+
