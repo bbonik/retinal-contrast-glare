@@ -661,9 +661,9 @@ if __name__ == "__main__":
         path_output = '../outputs/',  # location where outputs will be saved
         age = 25,
         pigmentation_factor = 0.5,
-        pixel_size = 0.1664,
-        viewing_distance = 360,
-        log_range = 5.4,
+        pixel_size = 0.05005,
+        viewing_distance = 600,
+        log_range = 2.302,
         verbose = 2
     )
 
