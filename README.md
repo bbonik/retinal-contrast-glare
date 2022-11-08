@@ -25,7 +25,7 @@ Finally, different visualizations are generated and saved.
 ```tree
 ├── python                           [Directory: Python source code]
 │   ├── requirements.txt             [Conda environment file for the required version of libraries]
-│   └── retinal_contrast.py          [Function for estimating retinal contrast from an input scene map and a telephotometer LUT file] 
+│   ├── retinal_contrast.py          [Function for estimating retinal contrast from an input scene map and a telephotometer LUT file] 
 │   └── test_retinal_contrast.py     [Example script for calling the function and testing one input scene]
 ├── matlab                           [Directory: Matlab source code]
 │   ├── computeRetinalContrast.m     [Function for estimating retinal contrast from an input scene map and a telephotometer LUT file]
@@ -36,7 +36,9 @@ Finally, different visualizations are generated and saved.
     ├── scene1                       [Directory: example scene 1 map image and corresponding telephotometer LUT file]
     ├── scene2                       [Directory: example scene 2 map image and corresponding telephotometer LUT file]
     ├── scene3                       [Directory: example scene 3 map image and corresponding telephotometer LUT file]
-    └── scene4                       [Directory: example scene 4 map image and corresponding telephotometer LUT file]
+    ├── scene4                       [Directory: example scene 4 map image and corresponding telephotometer LUT file]
+    ├── scene5                       [Directory: example scene 5 map image and corresponding telephotometer LUT file]
+    └── scene6                       [Directory: example scene 6 map image and corresponding telephotometer LUT file]
 ```
 
 
@@ -56,6 +58,12 @@ The code is based on Python 3.8. You can generate a new package environment simi
 Once you create your new environment from the requirements.txt, you can activate it with the following command. After that, you will be able to run the code.
 
 ```conda activate <your_own_environment_name>```
+
+
+# Contributions and Acknowledgments
+Vassilios Vonikakis wrote and implemented the Python code, during his time with the Advanced Digital Sciences Center - ADSC, as a continuation of an earlier Matlab-based project. He also collaborated with John McCann and Alessandro Rizzi in the analysis of the results. John McCann has brought together the glare and lightness research in collaboration with many others.  
+
+The authors acknowledge the major contributions of Tom van den Berg, Joris Coppens, and Ivar Farup, in the design and implementation of this program; and W. A. Stiehl, Bob Savoy, Jon Frankle in the earlier study of glare. Without their many contributions this work would not be possible. The authors thank Mary McCann for her thoughtful discussions.
 
 
 # Citation
