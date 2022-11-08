@@ -69,3 +69,4 @@ The authors acknowledge the major contributions of Tom van den Berg, Joris Coppe
 # Citation
 If you use this code in your research please cite the following paper:   
 1. [McCann, J., Vonikakis, V. (2018). Calculating Retinal Contrast from Scene Content: A Program. Frontiers in Psychology, 8, article 2079](https://www.frontiersin.org/articles/10.3389/fpsyg.2017.02079/full)
+2. John J. McCann, Vassilios Vonikakis, Alessandro Rizzi (2022). Edges and Gradients in Lightness Illusions: Role of Optical Veiling Glare. Frontiers in Psychology
